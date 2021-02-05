@@ -1,10 +1,8 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {of} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
 import {Customer} from './customer/model/customer';
 import {ApiCustomer} from './customer/model/api-customer';
-import {CacheService} from './cache.service';
 
 
 @Injectable({
@@ -12,7 +10,7 @@ import {CacheService} from './cache.service';
 })
 export class CustomerService {
 
-  constructor(private http: HttpClient, private cache: CacheService) {
+  constructor(private http: HttpClient) {
   }
 
   mapApiCustomer(apiCustomer: ApiCustomer): Customer {
@@ -24,18 +22,15 @@ export class CustomerService {
     } as Customer;
   }
 
-  findAll() {
-    if (this.cache.has('customer.list')) {
-      return of(this.cache.get('customer.list'));
-    }
-    return this.http.get('http://localhost:8000/api/customers').pipe(
-      map(data => {
-        return data['hydra:member'] as ApiCustomer[];
-      }),
-      map(apiCustomers => {
-        return apiCustomers.map(this.mapApiCustomer);
-      }),
-      tap(value => this.cache.set('customer.list', value))
+  findAll(page = 1) {
+    return this.http.get('http://localhost:8000/api/customers?page=' + page).pipe(
+      map(value => {
+        return{
+          items: (value['hydra:member'] as ApiCustomer[]).map(this.mapApiCustomer),
+          currentPage: page,
+          pagesCount: this.getPageInUrl(value['hydra:view']['hydra:last'])
+        }
+      })
     );
   }
 
@@ -53,8 +48,7 @@ export class CustomerService {
       email: customer.email,
     };
     return this.http.put<ApiCustomer>('http://localhost:8000/api/customers/' + customer.id, apiCustomer).pipe(
-      map(this.mapApiCustomer),
-      tap(value => this.cache.invalidate('customer.list'))
+      map(this.mapApiCustomer)
     );
   }
 
@@ -69,5 +63,10 @@ export class CustomerService {
         return apiCustomers.map(this.mapApiCustomer);
       })
     );
+  }
+
+  private getPageInUrl(url: string): number{
+    const result = url.match(/page=(\d+)/);
+    return +result[1];
   }
 }

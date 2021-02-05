@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {Customer} from './model/customer';
 import {CustomerService} from '../customer.service';
 import {Observable, Subscription} from 'rxjs';
+import {dashCaseToCamelCase} from '@angular/compiler/src/util';
 
 @Component({
   selector: 'app-customer-list',
@@ -18,7 +19,7 @@ import {Observable, Subscription} from 'rxjs';
       </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let c of customers | async">
+      <tr *ngFor="let c of customers">
         <td>{{ c.fullName }}</td>
         <td>{{ c.email }}</td>
         <td>{{ c.invoices.length }}</td>
@@ -29,21 +30,36 @@ import {Observable, Subscription} from 'rxjs';
       </tr>
       </tbody>
     </table>
-    <app-pagination [pagesCount]="5" [currentPage]="1"></app-pagination>
+    <app-pagination *ngIf="pagesCount > 1" [pagesCount]="pagesCount" [currentPage]="currentPage" (onPageChange)="refreshCustomer($event)"></app-pagination>
   `,
   styles: []
 })
 export class CustomerListComponent implements OnInit {
 
-  customers: Observable<Customer[]>;
+  customers: Customer[] = [];
   destroyCustomers: Subscription;
+
+  pagesCount: number = 1;
+  currentPage: number = 1;
 
   constructor(private service: CustomerService) {
   }
 
   ngOnInit(): void {
     // this.service.findAll().subscribe(data => this.customers = data);
-    this.customers = this.service.findAll();
+    this.destroyCustomers = this.service.findAll().subscribe(value => {
+        this.customers = value.items;
+        this.pagesCount = value.pagesCount;
+    });
+  }
+
+  refreshCustomer(page: number){
+    this.currentPage = page;
+
+    this.destroyCustomers = this.service.findAll(page).subscribe(value => {
+      this.customers = value.items;
+      this.pagesCount = value.pagesCount;
+    });
   }
 
   ngOnDestroy():void{

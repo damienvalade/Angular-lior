@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, EventEmitter, Output} from '@angular/core';
 
 @Component({
   selector: 'app-pagination',
@@ -6,13 +6,13 @@ import {Component, Input, OnInit} from '@angular/core';
     <div>
       <ul class="pagination">
         <li class="page-item previous" [ngClass]="{disabled: currentPage == 1}">
-          <a class="page-link" (click)="previousPage()" href="#">&laquo;</a>
+          <a class="page-link" (click)="previousPage()">&laquo;</a>
         </li>
         <li class="page-item" [ngClass]="{active: number === currentPage}" *ngFor="let number of this.getPages()">
-          <a class="page-link" href="#">{{ number }}</a>
+          <a class="page-link" (click)="changePage(number)">{{ number }}</a>
         </li>
         <li class="page-item next" [ngClass]="{disabled: currentPage === pagesCount}">
-          <a class="page-link next" (click)="nextPage()" href="#">&raquo;</a>
+          <a class="page-link next" (click)="nextPage()">&raquo;</a>
         </li>
       </ul>
     </div>
@@ -22,24 +22,31 @@ import {Component, Input, OnInit} from '@angular/core';
 })
 export class PaginationComponent implements OnInit {
 
-  @Input() pagesCount: number;
-  @Input() currentPage: number = 1;
+  @Input() pagesCount  = 1;
+  @Input() currentPage = 1;
+
+  @Output() onPageChange = new EventEmitter<number>();
 
   constructor() { }
 
   ngOnInit(): void {
   }
 
+  changePage(number: number) {
+    this.currentPage = number;
+    this.onPageChange.next(number);
+  }
+
   nextPage() {
     if (this.currentPage === this.pagesCount) {
       return;
     }
-    this.currentPage++;
+    this.changePage(this.currentPage + 1);
   }
 
   previousPage() {
     if (this.currentPage > 1){
-      this.currentPage --;
+      this.changePage(this.currentPage - 1);
     }
   }
 

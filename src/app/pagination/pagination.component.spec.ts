@@ -7,12 +7,21 @@ import {Component} from '@angular/core';
 @Component({
   template:`
   <h1>text component</h1>
-  <app-pagination [pagesCount]="testPagesCount"></app-pagination>
+  <app-pagination
+    [pagesCount]="testPagesCount"
+    [currentPage]="testCurrentPage"
+    (onPageChange)="refreshCustomers($event)"
+  ></app-pagination>
   `
 })
 
 class TestComponent {
   testPagesCount = 5;
+  testCurrentPage = 1;
+
+  refreshCustomers(page: number){
+    this.testCurrentPage = page
+  }
 }
 
 describe('Pagination with host', () => {
@@ -38,6 +47,17 @@ describe('Pagination with host', () => {
 
     const document = fixture.nativeElement as HTMLElement;
     expect(document.querySelectorAll('li').length).toBe(5);
+  })
+
+  it('should detect the onPage event', () => {
+    component.testCurrentPage = 3;
+    component.testPagesCount = 5;
+    fixture.detectChanges();
+
+    const linkDebug = fixture.debugElement.query(By.css('.page-item:nth-of-type(3) .page-link'));
+    linkDebug.triggerEventHandler('click', null);
+
+    expect(component.testCurrentPage).toBe(2);
   })
 });
 
@@ -155,6 +175,38 @@ describe('PaginationComponent', () => {
   })
 
   it('should change currentPage when we click on page link', () => {
+    component.currentPage = 2;
+    component.pagesCount = 5;
+    fixture.detectChanges();
 
+    const linkDebug = fixture.debugElement.query(By.css(".page-item:nth-of-type(4) a"));
+    linkDebug.triggerEventHandler('click', null);
+
+    expect(component.currentPage).toBe(3);
+  })
+
+  it('should emit the page when the page change', (done) => {
+    component.currentPage = 3;
+    component.pagesCount = 5;
+
+    component.onPageChange.subscribe( p  => {
+      expect(p).toBe(2);
+      done();
+    })
+
+    component.changePage(2);
+  })
+
+  it('should emit the page when we click on a button', (done) => {
+    component.currentPage = 3;
+    component.pagesCount = 5;
+
+    component.onPageChange.subscribe( p  => {
+      expect(p).toBe(4);
+      done();
+    })
+
+    const linkdebug = fixture.debugElement.query(By.css('.page-item:nth-of-type(3) .page-link'));
+    linkdebug.triggerEventHandler('click', null);
   })
 });
