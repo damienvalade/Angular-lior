@@ -1,8 +1,45 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PaginationComponent } from './pagination.component';
-import {callExpression} from 'codelyzer/util/astQuery';
 import {By} from '@angular/platform-browser';
+import {Component} from '@angular/core';
+
+@Component({
+  template:`
+  <h1>text component</h1>
+  <app-pagination [pagesCount]="testPagesCount"></app-pagination>
+  `
+})
+
+class TestComponent {
+  testPagesCount = 5;
+}
+
+describe('Pagination with host', () => {
+  let component: TestComponent;
+  let fixture: ComponentFixture<TestComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [PaginationComponent, TestComponent]
+    })
+      .compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TestComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should display as many items as testPagesCount', () => {
+    component.testPagesCount = 3;
+    fixture.detectChanges();
+
+    const document = fixture.nativeElement as HTMLElement;
+    expect(document.querySelectorAll('li').length).toBe(5);
+  })
+});
 
 describe('PaginationComponent', () => {
   let component: PaginationComponent;
@@ -106,5 +143,18 @@ describe('PaginationComponent', () => {
 
     const previousElement = fixture.nativeElement.querySelector('.previous') as HTMLElement;
     expect(previousElement.classList.contains('disabled')).toBeTruthy();
+  })
+
+  it('should apply active class on the currentPage element', () => {
+    component.currentPage = 3;
+    component.pagesCount = 5;
+
+    const document = fixture.nativeElement as HTMLElement;
+    const activeElement = document.querySelector('.active');
+    expect(activeElement.textContent).toBe('1');
+  })
+
+  it('should change currentPage when we click on page link', () => {
+
   })
 });

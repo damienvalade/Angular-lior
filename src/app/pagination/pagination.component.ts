@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 
 @Component({
   selector: 'app-pagination',
@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
         <li class="page-item previous" [ngClass]="{disabled: currentPage == 1}">
           <a class="page-link" (click)="previousPage()" href="#">&laquo;</a>
         </li>
-        <li class="page-item" *ngFor="let number of this.numberLi">
+        <li class="page-item" [ngClass]="{active: number === currentPage}" *ngFor="let number of this.getPages()">
           <a class="page-link" href="#">{{ number }}</a>
         </li>
         <li class="page-item next" [ngClass]="{disabled: currentPage === pagesCount}">
@@ -22,9 +22,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class PaginationComponent implements OnInit {
 
-  currentPage: number = 1;
-  pagesCount: number;
-  numberLi = this.getPages();
+  @Input() pagesCount: number;
+  @Input() currentPage: number = 1;
 
   constructor() { }
 

@@ -29,6 +29,7 @@ import {Observable, Subscription} from 'rxjs';
       </tr>
       </tbody>
     </table>
+    <app-pagination [pagesCount]="5" [currentPage]="1"></app-pagination>
   `,
   styles: []
 })
