@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import { CustomerListComponent } from './customer/customer-list.component';
 import { CustomerFormComponent } from './customer/customer-form.component';
 import {ReactiveFormsModule} from '@angular/forms';
@@ -15,6 +15,7 @@ import { XhrComponent } from './xhr/xhr.component';
 import { Exercice2Component } from './exercice/exercice2.component';
 import { BlogPostComponent } from './blog/blog-post.component';
 import { PaginationComponent } from './pagination/pagination.component';
+import { CacheInterceptor } from './cache-interceptor';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,7 @@ import { PaginationComponent } from './pagination/pagination.component';
     HttpClientModule,
     ReactiveFormsModule
   ],
-  providers: [],
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: CacheInterceptor, multi: true}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
