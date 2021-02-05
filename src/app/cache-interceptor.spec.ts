@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CacheInterceptor } from './cache-interceptor.interceptor';
+import { CacheInterceptor } from './cache-interceptor';
 
 describe('CacheInterceptorInterceptor', () => {
   beforeEach(() => TestBed.configureTestingModule({
