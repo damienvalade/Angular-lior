@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Inject, Injectable, InjectionToken, Optional} from '@angular/core';
 import {
   HttpRequest,
   HttpHandler,
@@ -8,40 +8,40 @@ import {
 import {Observable, of} from 'rxjs';
 import {CacheService} from './cache.service';
 import {tap} from 'rxjs/operators';
+import {CacheHandler} from './http/cache-handler';
+
+export const CACHE_HANDLERS_INJECTION = new InjectionToken<CacheHandler[]>('Liste de cache handlers', {factory: () => []});
 
 @Injectable()
 export class CacheInterceptor implements HttpInterceptor {
 
-  constructor(private cache: CacheService) {}
+  constructor(
+    private cache: CacheService,
+    @Inject(CACHE_HANDLERS_INJECTION) private handlers: CacheHandler[] = []
+  ) {
+  }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    const handler1 = {
-      supports(url: string){
-        return url.search(/\/api\/customers/) >= 1;
-      },
-      getTime(){
-        return 50;
+
+    let duration = 60;
+
+    for (const handler of this.handlers) {
+      if (!handler.supports(request.url)) {
+        continue;
       }
+      duration = handler.getDuration();
+      break;
     }
 
 
-    const handler2 = {
-      supports(url: string){
-        return url.search(/\/api\/blog/) >= 1;
-      },
-      getTime(){
-        return 200;
-      }
-    }
-
-    if (this.cache.has(request.url)){
+    if (this.cache.has(request.url)) {
       return of(this.cache.get(request.url));
     }
 
     return next.handle(request).pipe(
       tap(value => {
         if (value instanceof HttpResponse) {
-          this.cache.set(request.url, value);
+          this.cache.set(request.url, value, duration);
         }
       })
     );
